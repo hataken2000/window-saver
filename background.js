@@ -94,6 +94,23 @@ chrome.windows.onFocusChanged.addListener(async (windowId) => {
 
 // --- メッセージ ---
 
+const ALLOWED_ORIGINS = ["https://hataken2000.github.io"];
+
+chrome.runtime.onMessageExternal.addListener((message, sender, sendResponse) => {
+  const originOk = sender.origin && ALLOWED_ORIGINS.some(o => sender.origin.startsWith(o));
+  const idOk = !!sender.id; // 拡張からの呼び出しは常に許可
+  if (!originOk && !idOk) return;
+
+  if (message.type === "RESTORE_SESSION") {
+    restoreSession(message.session).then(sendResponse);
+    return true;
+  }
+  if (message.type === "GET_SESSIONS") {
+    getSessions().then(sendResponse);
+    return true;
+  }
+});
+
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   if (message.type === "SAVE_SESSION") {
     saveSession(message.name).then(sendResponse);
@@ -113,6 +130,10 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   }
   if (message.type === "RENAME_SESSION") {
     renameSession(message.id, message.name).then(sendResponse);
+    return true;
+  }
+  if (message.type === "IMPORT_SESSIONS") {
+    importSessions(message.sessions).then(sendResponse);
     return true;
   }
 });
@@ -251,4 +272,13 @@ async function renameSession(id, name) {
 async function getSessions() {
   const { sessions = [] } = await chrome.storage.local.get("sessions");
   return sessions;
+}
+
+async function importSessions(incoming) {
+  if (!Array.isArray(incoming)) return { ok: false };
+  const { sessions = [] } = await chrome.storage.local.get("sessions");
+  const existingIds = new Set(sessions.map(s => s.id));
+  const merged = [...sessions, ...incoming.filter(s => !existingIds.has(s.id))];
+  await chrome.storage.local.set({ sessions: merged });
+  return { ok: true };
 }

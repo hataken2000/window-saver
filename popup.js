@@ -107,4 +107,31 @@ function escHtml(str) {
   return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }
 
+document.getElementById("exportBtn").addEventListener("click", async () => {
+  const sessions = await chrome.runtime.sendMessage({ type: "GET_SESSIONS" });
+  const blob = new Blob([JSON.stringify(sessions, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `window-saver-${new Date().toISOString().slice(0, 10)}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+});
+
+document.getElementById("importFile").addEventListener("change", async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const text = await file.text();
+  let imported;
+  try {
+    imported = JSON.parse(text);
+  } catch {
+    alert("JSONファイルが正しくありません");
+    return;
+  }
+  await chrome.runtime.sendMessage({ type: "IMPORT_SESSIONS", sessions: imported });
+  e.target.value = "";
+  await renderSessions();
+});
+
 renderSessions();

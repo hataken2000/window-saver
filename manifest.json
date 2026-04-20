@@ -19,5 +19,12 @@
   },
   "background": {
     "service_worker": "background.js"
+  },
+  "externally_connectable": {
+    "ids": ["*"],
+    "matches": [
+      "https://hataken2000.github.io/*",
+      "file://*/*"
+    ]
   }
 }
