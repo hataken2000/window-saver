@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Window Saver</title>
+  <link rel="stylesheet" href="popup.css" />
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Window Saver</h1>
+    </header>
+
+    <div class="save-area">
+      <input type="text" id="sessionName" placeholder="名前（省略で日時）" />
+      <button id="saveBtn">保存</button>
+    </div>
+
+    <div id="sessionList" class="session-list">
+      <p class="empty">保存済みセッションなし</p>
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
