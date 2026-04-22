@@ -202,6 +202,18 @@ async function overwriteSession(sessionId, { tabs, groups }) {
 }
 
 async function restoreSession(session) {
+  // すでに開いているウィンドウがあればフォーカスして終了
+  try {
+    const windows = await chrome.windows.getAll({ windowTypes: ["normal"] });
+    for (const win of windows) {
+      const savedId = await getSessionId(win.id);
+      if (savedId === session.id) {
+        await chrome.windows.update(win.id, { focused: true });
+        return { ok: true, reused: true };
+      }
+    }
+  } catch (_) {}
+
   const newWindow = await chrome.windows.create({});
   const newWindowId = newWindow.id;
   const groupIdMap = {};
